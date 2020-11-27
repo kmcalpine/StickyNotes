@@ -105,10 +105,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg,
     static HBRUSH brush;
     
     switch (msg) {
-        case WM_CHAR:
-            OutputDebugString(L"WM_KEYDOWN:");
-            break;
-
 
         case WM_CREATE:
 
@@ -129,7 +125,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg,
             {
                 brush = CreateSolidBrush(RGB(255, 235, 135));
             }
-            OutputDebugString(L"Testing\n");
             return (LRESULT)brush;
         }
 
