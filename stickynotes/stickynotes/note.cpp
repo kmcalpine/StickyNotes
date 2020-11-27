@@ -3,7 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <tchar.h>
+#include <iostream>
 #define ID_EDIT 1
+#define IDM_EDUNDO       10101
+#define IDM_EDCUT        10102
+#define IDM_EDCOPY       10103
+#define IDM_EDPASTE      10104
+#define IDM_EDDEL        10105
+#define WM_KEYDOWN                      0x0100
+
+using namespace std;
 
 static TCHAR szWindowClass[] = _T("DesktopApp");
 
@@ -11,6 +20,7 @@ static TCHAR szTitle[] = _T("Sticky Notes");
 
 HINSTANCE hInst;
 
+// Forward declarations of functions included in this code module:
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int CALLBACK WinMain(
@@ -28,14 +38,12 @@ int CALLBACK WinMain(
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
-    wcex.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
+    wcex.hIcon = LoadIcon(hInstance, IDI_QUESTION);
     wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.hbrBackground = (HBRUSH)(CreateSolidBrush(RGB(255, 235, 135)));
     wcex.lpszMenuName = NULL;
     wcex.lpszClassName = szWindowClass;
-    wcex.hIconSm = LoadIcon(wcex.hInstance, IDI_APPLICATION);
-
-
+    wcex.hIconSm = LoadIcon(wcex.hInstance, IDI_QUESTION);
 
     if (!RegisterClassEx(&wcex))
     {
@@ -53,7 +61,7 @@ int CALLBACK WinMain(
     HWND hWnd = CreateWindow(
         szWindowClass,
         NULL,
-        WS_OVERLAPPEDWINDOW^WS_THICKFRAME^WS_MAXIMIZEBOX^WS_BORDER,
+        WS_SYSMENU&~WS_CAPTION,
         CW_USEDEFAULT, CW_USEDEFAULT,
         250, 250,
         NULL,
@@ -62,8 +70,7 @@ int CALLBACK WinMain(
         NULL
     );
     SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-
-
+    
     if (!hWnd)
     {
         MessageBox(NULL,
@@ -77,6 +84,7 @@ int CALLBACK WinMain(
     ShowWindow(hWnd,
         nCmdShow);
     UpdateWindow(hWnd);
+
 
     // Main message loop:
     MSG msg;
@@ -93,40 +101,51 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg,
     WPARAM wParam, LPARAM lParam) {
 
     static HWND hwndEdit;
+    static HWND toolBar;
     static HBRUSH brush;
-
+    
     switch (msg) {
+        case WM_CHAR:
+            OutputDebugString(L"WM_KEYDOWN:");
+            break;
 
-    case WM_CREATE:
 
-        hwndEdit = CreateWindow(L"Edit", NULL,
-            WS_CHILD | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL,
-            0, 0, 250, 250, hwnd, (HMENU)ID_EDIT,
-            NULL, NULL);
-        brush = CreateSolidBrush(RGB(255, 235, 135));
-        break;
+        case WM_CREATE:
 
-    case WM_CTLCOLOREDIT:
-    {
-        HDC hdc = (HDC)hwndEdit;
-        SendMessage(hwndEdit, WM_ERASEBKGND, wParam, 0);
-        SetBkMode((HDC)wParam, TRANSPARENT);
-        SetTextColor(hdc, RGB(60, 60, 60));
-        SetBkColor(hdc, RGB(255, 0, 0)); 
-        return (LRESULT)((HBRUSH)brush);
-    //}
+            hwndEdit = CreateWindow(L"Edit", NULL,
+                WS_CHILD | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL,
+                10, 10, 210, 190, hwnd, (HMENU)ID_EDIT,
+                NULL, NULL);
 
-    }
-    break;
+            break;
 
-    case WM_COMMAND:
-        break;
+        case WM_CTLCOLOREDIT:
+        {
+            HDC hdc = (HDC)wParam;
+            SetTextColor(hdc, RGB(75, 65, 0));
+            SetBkColor(hdc, RGB(255, 235, 135));
 
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        DeleteObject(brush);
-        break;
-    }
+            if (brush == NULL)
+            {
+                brush = CreateSolidBrush(RGB(255, 235, 135));
+            }
+            OutputDebugString(L"Testing\n");
+            return (LRESULT)brush;
+        }
+
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            DeleteObject(brush);
+            break;
+        }
+
+        return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+LRESULT CALLBACK EditProc(HWND hwnd, UINT msg,
+    WPARAM wParam, LPARAM lParam) {
+
 
     return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
+
